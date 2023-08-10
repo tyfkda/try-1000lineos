@@ -1,5 +1,7 @@
 #pragma once
 
+#define PAGE_SIZE  4096
+
 #define PANIC(fmt, ...)                                                        \
     do {                                                                       \
         printf("PANIC: %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__);  \
