@@ -59,3 +59,18 @@ struct sbiret {
     long error;
     long value;
 };
+
+// Process
+
+#define PROCS_MAX 8       // 最大プロセス数
+#define PROC_UNUSED   0   // 未使用のプロセス管理構造体
+#define PROC_RUNNABLE 1   // 実行可能なプロセス
+
+typedef uintptr_t vaddr_t;
+
+struct process {
+    int pid;             // プロセスID
+    int state;           // プロセスの状態
+    vaddr_t sp;          // コンテキストスイッチ時のスタックポインタ
+    uint8_t stack[8192]; // カーネルスタック
+};
