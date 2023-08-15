@@ -204,16 +204,37 @@ struct process *create_process(uint32_t pc) {
     return proc;
 }
 
-//
+struct process *current_proc; // 現在実行中のプロセス
+struct process *idle_proc;    // アイドルプロセス
 
-struct process *proc_a;
-struct process *proc_b;
+void yield(void) {
+    // 実行可能なプロセスを探す
+    struct process *next = idle_proc;
+    for (int i = 0; i < PROCS_MAX; i++) {
+        struct process *proc = &procs[(current_proc->pid + i) % PROCS_MAX];
+        if (proc->state == PROC_RUNNABLE && proc->pid > 0) {
+            next = proc;
+            break;
+        }
+    }
+
+    // 現在実行中のプロセス以外に、実行可能なプロセスがない。戻って処理を続行する
+    if (next == current_proc)
+        return;
+
+    // コンテキストスイッチ
+    struct process *prev = current_proc;
+    current_proc = next;
+    switch_context(&prev->sp, &next->sp);
+}
+
+//
 
 void proc_a_entry(void) {
     printf("starting process A\n");
     while (1) {
         putchar('A');
-        switch_context(&proc_a->sp, &proc_b->sp);
+        yield();
 
         for (int i = 0; i < 30000000; i++)
             __asm__ __volatile__("nop");
@@ -224,7 +245,7 @@ void proc_b_entry(void) {
     printf("starting process B\n");
     while (1) {
         putchar('B');
-        switch_context(&proc_b->sp, &proc_a->sp);
+        yield();
 
         for (int i = 0; i < 30000000; i++)
             __asm__ __volatile__("nop");
@@ -239,11 +260,16 @@ void kernel_main(void) {
     WRITE_CSR(stvec, (uint32_t) kernel_entry);
     // __asm__ __volatile__("unimp"); // 無効な命令
 
-    proc_a = create_process((uint32_t) proc_a_entry);
-    proc_b = create_process((uint32_t) proc_b_entry);
-    proc_a_entry();
+    idle_proc = create_process((uint32_t) NULL);
+    idle_proc->pid = -1; // idle
+    current_proc = idle_proc;
 
-    PANIC("done");
+
+    create_process((uint32_t) proc_a_entry);
+    create_process((uint32_t) proc_b_entry);
+
+    yield();
+    PANIC("switched to idle process");
 }
 
 __attribute__((section(".text.boot")))
