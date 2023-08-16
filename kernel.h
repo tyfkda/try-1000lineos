@@ -55,6 +55,8 @@ struct trap_frame {
         __asm__ __volatile__("csrw " #reg ", %0" ::"r"(__tmp));                \
     } while (0)
 
+#define SSTATUS_SPIE (1 << 5)
+
 struct sbiret {
     long error;
     long value;
@@ -84,3 +86,5 @@ struct process {
     uint32_t *page_table;
     uint8_t stack[8192]; // カーネルスタック
 };
+
+#define USER_BASE 0x1000000

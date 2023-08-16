@@ -1,2 +1,4 @@
-/kernel.elf
-/kernel.map
+*.elf
+*.o
+*.bin
+*.map
