@@ -1,5 +1,7 @@
 #pragma once
 
+#define SYS_PUTCHAR 1
+
 typedef int bool;
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
